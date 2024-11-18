@@ -22,6 +22,12 @@
 #include <setjmp.h>
 #include <math.h>
 #include "btest.h"
+#include <stdint.h>
+
+/* Masks and conversion macros for 32-bit compatibility */
+#define MASK32 0xFFFFFFFF
+#define TO_INT32(x) ((int)((x) & MASK32))
+#define SIGN_EXTEND32(x) ((int)((int32_t)(x)))
 
 /* Not declared in some stdlib.h files, so define here */
 float strtof(const char *nptr, char **endptr);
@@ -246,46 +252,42 @@ static int test_1_arg(funct_t f, funct_t ft, int arg1, char *name)
     funct1_t f1t = (funct1_t) ft;
     int r, rt, error;
 
-    r = f1(arg1);
-    rt = f1t(arg1);
+    r = TO_INT32(f1(SIGN_EXTEND32(arg1)));
+    rt = TO_INT32(f1t(SIGN_EXTEND32(arg1)));
     error = (r != rt);
     if (error && !grade)
-	printf("ERROR: Test %s(%d[0x%x]) failed...\n...Gives %d[0x%x]. Should be %d[0x%x]\n", name, arg1, arg1, r, r, rt, rt);
+        printf("ERROR: Test %s(%d[0x%x]) failed...\n...Gives %d[0x%x]. Should be %d[0x%x]\n", 
+               name, arg1, arg1, r, r, rt, rt);
 
     return error;
 }
 
-/* 
- * test_2_arg - Test a function with two arguments 
- */
 static int test_2_arg(funct_t f, funct_t ft, int arg1, int arg2, char *name)
 {
     funct2_t f2 = (funct2_t) f;
     funct2_t f2t = (funct2_t) ft;
-    int r = f2(arg1, arg2);
-    int rt = f2t(arg1, arg2);
+    int r = TO_INT32(f2(SIGN_EXTEND32(arg1), SIGN_EXTEND32(arg2)));
+    int rt = TO_INT32(f2t(SIGN_EXTEND32(arg1), SIGN_EXTEND32(arg2)));
     int error = (r != rt);
 
     if (error && !grade)
-	printf("ERROR: Test %s(%d[0x%x],%d[0x%x]) failed...\n...Gives %d[0x%x]. Should be %d[0x%x]\n", name, arg1, arg1, arg2, arg2, r, r, rt, rt);
+        printf("ERROR: Test %s(%d[0x%x],%d[0x%x]) failed...\n...Gives %d[0x%x]. Should be %d[0x%x]\n",
+               name, arg1, arg1, arg2, arg2, r, r, rt, rt);
 
     return error;
 }
 
-/* 
- * test_3_arg - Test a function with three arguments 
- */
-static int test_3_arg(funct_t f, funct_t ft, 
-		      int arg1, int arg2, int arg3, char *name)
+static int test_3_arg(funct_t f, funct_t ft, int arg1, int arg2, int arg3, char *name)
 {
     funct3_t f3 = (funct3_t) f;
     funct3_t f3t = (funct3_t) ft;
-    int r = f3(arg1, arg2, arg3);
-    int rt = f3t(arg1, arg2, arg3);
+    int r = TO_INT32(f3(SIGN_EXTEND32(arg1), SIGN_EXTEND32(arg2), SIGN_EXTEND32(arg3)));
+    int rt = TO_INT32(f3t(SIGN_EXTEND32(arg1), SIGN_EXTEND32(arg2), SIGN_EXTEND32(arg3)));
     int error = (r != rt);
 
     if (error && !grade)
-	printf("ERROR: Test %s(%d[0x%x],%d[0x%x],%d[0x%x]) failed...\n...Gives %d[0x%x]. Should be %d[0x%x]\n", name, arg1, arg1, arg2, arg2, arg3, arg3, r, r, rt, rt);
+        printf("ERROR: Test %s(%d[0x%x],%d[0x%x],%d[0x%x]) failed...\n...Gives %d[0x%x]. Should be %d[0x%x]\n",
+               name, arg1, arg1, arg2, arg2, arg3, arg3, r, r, rt, rt);
 
     return error;
 }
