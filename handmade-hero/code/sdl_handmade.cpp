@@ -133,10 +133,10 @@ bool HandleEvent(SDL_Event *Event)
             {
                 case SDL_WINDOWEVENT_SIZE_CHANGED:
                 {
-                    SDL_Window *Window = SDL_GetWindowFromID(Event->window.windowID);
-                    SDL_Renderer *Renderer = SDL_GetRenderer(Window);
+                    // SDL_Window *Window = SDL_GetWindowFromID(Event->window.windowID);
+                    // SDL_Renderer *Renderer = SDL_GetRenderer(Window);
                     printf("SDL_WINDOWEVENT_SIZE_CHANGED (%d, %d)\n", Event->window.data1, Event->window.data2);
-                    SDLResizeTexture(&GlobalBackbuffer, Renderer, Event->window.data1, Event->window.data2);
+                    // SDLResizeTexture(&GlobalBackbuffer, Renderer, Event->window.data1, Event->window.data2);
                 } break;
 
                 case SDL_WINDOWEVENT_FOCUS_GAINED:
