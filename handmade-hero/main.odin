@@ -1,7 +1,8 @@
-package main
+package handmade
 
 import "core:fmt"
 import SDL "vendor:sdl2"
+import "core:mem"
 
 SDL_Offscreen_Buffer :: struct {
     Texture: ^SDL.Texture,
@@ -22,6 +23,32 @@ RumbleHandles: [MAX_CONTROLLERS] ^SDL.Haptic
 SDL_Window_Dimension :: struct {
     Width: i32,
     Height: i32,
+}
+
+SDLAudioCallback :: proc "cdecl" (UserData: rawptr, AudioBuffer: [^]u8, AudioBufferLength: i32) {
+    mem.set(AudioBuffer, 0, int(AudioBufferLength))
+}
+
+SDLInitAudio :: proc(SamplesPerSecond: i32, BufferSize: u16) {
+    AudioSettings: SDL.AudioSpec
+
+    AudioSettings.freq = SamplesPerSecond;
+    AudioSettings.format = SDL.AUDIO_S16LSB;
+    AudioSettings.channels = 2;
+    AudioSettings.samples = BufferSize;
+    AudioSettings.callback = SDLAudioCallback;
+
+    SDL.OpenAudio(&AudioSettings, nil);
+
+    fmt.printfln("Initialised an Audio device at frequency %d Hz, %d Channels\n",
+           AudioSettings.freq, AudioSettings.channels);
+
+    if (AudioSettings.format != SDL.AUDIO_S16LSB) {
+        fmt.println("Oops! We didn't get AUDIO_S16LSB as our sample format!\n");
+        SDL.CloseAudio();
+    }
+
+    SDL.PauseAudio(false)
 }
 
 SDLGetWindowDimension :: proc(Window: ^SDL.Window) -> SDL_Window_Dimension {
@@ -158,6 +185,10 @@ HandleEvent :: proc(Event: ^SDL.Event) -> bool {
                     case:
                 }
             }
+            AltKeyWasDown := (Event.key.keysym.mod & (SDL.KMOD_ALT)) != SDL.KMOD_NONE
+            if KeyCode == SDL.Keycode.F4 && AltKeyWasDown {
+                ShouldQuit = true
+            }
             break
         case SDL.EventType.WINDOWEVENT:
             #partial switch Event.window.event {
@@ -221,10 +252,13 @@ SDLCloseGameControllers :: proc() {
 }
 
 main :: proc() {
-    SDL.Init(SDL.INIT_VIDEO | SDL.INIT_GAMECONTROLLER)
+    SDL.Init(SDL.INIT_VIDEO | SDL.INIT_GAMECONTROLLER | SDL.INIT_HAPTIC | SDL.INIT_AUDIO)
 
     // Initalize Game Controllers:
     SDLOpenGameControllers()
+
+    // Initalize Audio
+    SDLInitAudio(48000, 4096)
     
     Window: ^SDL.Window = SDL.CreateWindow(
         "Handmade Hero",
